@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  clerkId String @unique
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id]) // Relación con Role
+  balance   Balance? // Relación uno a uno con Balance
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique // Ejemplo: 'Admin', 'User', etc.
+  users     User[]   // Relación inversa (uno a muchos)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Balance {
+  id          Int           @id @default(autoincrement())
+  userId      Int           @unique
+  amount      Float         @default(0.0)
+  transactions Transaction[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  balanceId Int
+  amount    Float
+  type      String   // Ejemplo: "credit" o "debit"
+  createdAt DateTime @default(now())
+
+  balance   Balance  @relation(fields: [balanceId], references: [id])
+}
